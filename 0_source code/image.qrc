@@ -1,0 +1,29 @@
+<RCC>
+    <qresource prefix="/char">
+        <file>Image/bad-pig-icon.png</file>
+        <file>Image/bad-pig-icon_s.png</file>
+        <file>Image/owl-icon.png</file>
+        <file>Image/owl-icon_s.png</file>
+        <file>Image/rubber-duck-icon.png</file>
+        <file>Image/rubber-duck-icon_s.png</file>
+        <file>Image/snowman-icon.png</file>
+        <file>Image/snowman-icon_s.png</file>
+        <file>Image/bananas-icon.png</file>
+        <file>Image/bananas-icon-s.png</file>
+        <file>Image/cat-banjo-icon.png</file>
+        <file>Image/cat-banjo-icon-s.png</file>
+        <file>Image/cat-cupid-love-icon.png</file>
+        <file>Image/cat-cupid-love-icon-s.png</file>
+        <file>Image/cat-food-hearts-icon.png</file>
+        <file>Image/cat-food-hearts-icon-s.png</file>
+        <file>Image/cat-lady-icon.png</file>
+        <file>Image/cat-lady-icon-s.png</file>
+    </qresource>
+    <qresource prefix="/picture">
+        <file>Image/chessBoard.PNG</file>
+        <file>Image/backGround.png</file>
+    </qresource>
+    <qresource prefix="/style">
+        <file>Style/style.css</file>
+    </qresource>
+</RCC>

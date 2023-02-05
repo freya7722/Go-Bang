@@ -1,0 +1,26 @@
+QPushButton{
+    background-color: white;
+    border-radius: 8px;
+    border: 2px solid gray;
+    font: bold italic "Times New Roman";
+}
+QLabel{
+    font: bold italic "Times New Roman";
+    }
+QLabel#label_currPlayerPic_frame1{
+    border-radius: 8px;
+    border: 2px solid gray;
+    border-top-color: blue;
+    border-bottom-color: blue;
+}
+QLabel#label_currPlayerPic_frame2{
+    border-radius: 8px;
+    border: 2px solid gray;
+    border-top-color: blue;
+    border-bottom-color: blue;
+}
+QWidget{
+    background-image: white url(qrc:/picture/Image/chessBoard.PNG);
+}
+
+
