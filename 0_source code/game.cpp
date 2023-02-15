@@ -95,6 +95,18 @@ bool Game::moveOnToNextTurn_computerMode(Coor_row_column currGridCoor)
         return false;
 }
 
+int Game::scoreCaculation(string status)
+{
+    int score = 0;
+    //遍歷scoreCard，如果status包含scoreCard的旗子狀態就將對應到的分數加到score中
+    for(auto iter=chessScore.begin(); iter!= chessScore.end(); iter++){
+        if(strstr (status.c_str(),iter->first.c_str())){
+            score += iter->second;
+        }
+    }
+    return score;
+}
+
 BoardJudge Game::checkVictory(Coor_row_column chessGridCoor)
 {
     string currPlayerChess = chessState[chessGridCoor.row][chessGridCoor.column];
@@ -192,7 +204,7 @@ bool Game::checkChessOccupation(Coor_row_column currGridCoor)
         return true;
 }
 
-Coor_row_column Game::findBestSpottoSetChess_rev()
+Coor_row_column Game::findBestSpottoSetChess()
 {
     string currPlayerChess;
     int chessNumTop;
@@ -490,6 +502,270 @@ Coor_row_column Game::findBestSpottoSetChess_rev()
                     }
                 }
             }
+        }
+    }
+    qDebug()<<"~    Attack Score:["<<supposedRowtoSetChess_attack<<"]"<<"["<<supposedColumntoSetChess_attack<<"]"<<"/maximumScore: "<< maximumScore_attack;
+    qDebug()<<"~   Defense Score:["<<supposedRowtoSetChess_defense<<"]"<<"["<<supposedColumntoSetChess_defense<<"]"<<"/maximumScore: "<< maximumScore_defense;
+    if (maximumScore_attack >= maximumScore_defense)
+        return {supposedRowtoSetChess_attack, supposedColumntoSetChess_attack};
+    else//(maximumScore_attack < maximumScore_defense)
+        return {supposedRowtoSetChess_defense, supposedColumntoSetChess_defense};
+}
+
+Coor_row_column Game::findBestSpottoSetChess_rev()
+{
+    string currPlayerChess;
+    int chessNumTop;
+    int chessNumBottom;
+    int chessNumLeft;
+    int chessNumRight;
+    int maximumScore_attack = 0;
+    int supposedRowtoSetChess_attack = 0;
+    int supposedColumntoSetChess_attack = 0;
+    int maximumScore_defense = 0;
+    int supposedRowtoSetChess_defense = 0;
+    int supposedColumntoSetChess_defense = 0;
+    int lowerBound;
+    int upperBound;
+    int score_attack = 0;
+    int score_defense = 0;
+    for(int i=0;i<boardSize;i++){
+        for(int j=0;j<boardSize;j++){
+            score_attack = 0;
+            score_defense = 0;
+            if(chessState[i][j]==chessStateOption[EMPTY]){
+                currPlayerChess = chessStateOption[CHESS_PLAYER2];
+                chessNumTop = i; //row
+                chessNumBottom = boardSize-i-1;
+                chessNumLeft = j; //column
+                chessNumRight = boardSize-j-1;
+                if( chessNumTop > 4){
+                    chessNumTop = 4;
+                }
+                if( chessNumBottom > 4){
+                    chessNumBottom = 4;
+                }
+                if( chessNumRight > 4){
+                    chessNumRight = 4;
+                }
+                if( chessNumLeft > 4){
+                    chessNumLeft = 4;
+                }
+
+                //上到下(攻擊最大可能檢查)
+                int count_poten = 0;//用來記錄如果所有空格都可以填，最大可能連線數
+                bool isGoodSpot = false; //用來記錄是否是好的下棋點，最大可能連線數>=5
+                for(int k = -chessNumTop; k <= chessNumBottom; k++ ){
+                    if (chessState[i+k][j] == chessStateOption[EMPTY] || chessState[i+k][j] == chessStateOption[CHESS_PLAYER2]){
+                        count_poten++;
+                    }
+                    else count_poten=0;
+                    if(count_poten >= 5){
+                        isGoodSpot = true;
+                        break;
+                    }
+                }
+
+                //上到下(攻擊檢查，依造棋譜計分)
+                if(isGoodSpot){
+                    string status;
+                    for(int k = -chessNumTop; k <= chessNumBottom; k++ ){
+                        if(chessState[i+k][j] == chessStateOption[CHESS_PLAYER2] || k==0) status.append("1");
+                        else if(chessState[i+k][j] == chessStateOption[CHESS_PLAYER1]) status.append("2");
+                        else status.append("0"); //empty&&k!=0
+                    }
+                    score_attack += scoreCaculation(status);
+                }
+
+
+                //上到下(防禦最大可能性檢查)
+                isGoodSpot = false;
+                count_poten = 0;
+                for(int k = -chessNumTop; k <= chessNumBottom; k++ ){
+                    if (chessState[i+k][j] == chessStateOption[EMPTY] || chessState[i+k][j] == chessStateOption[CHESS_PLAYER1]){
+                        count_poten++;
+                    }
+                    else count_poten=0;
+                    if(count_poten >= 5){
+                        isGoodSpot = true;
+                        break;
+                    }
+                }
+
+                //上到下(防禦檢查)
+                if(isGoodSpot){
+                    string status;
+                    for(int k = -chessNumTop; k <= chessNumBottom; k++ ){
+                        if(chessState[i+k][j] == chessStateOption[CHESS_PLAYER1] || k==0) status.append("1");
+                        else if(chessState[i+k][j] == chessStateOption[CHESS_PLAYER2]) status.append("2");
+                        else status.append("0"); //empty&&k!=0
+                    }
+                    score_defense += scoreCaculation(status);
+                }
+
+                //左到右(攻擊最大可能性檢查)
+                isGoodSpot = false;
+                count_poten = 0;
+                for(int k = -chessNumLeft; k <= chessNumRight; k++ ){
+                    if (chessState[i][j+k] == chessStateOption[EMPTY] || chessState[i][j+k] == chessStateOption[CHESS_PLAYER2]){
+                        count_poten++;
+                    }
+                    else count_poten=0;
+                    if(count_poten >= 5){
+                        isGoodSpot = true;
+                        break;
+                    }
+                }
+                //左到右(攻擊檢查)
+                if(isGoodSpot){
+                    string status;
+                    for(int k = -chessNumLeft; k <= chessNumRight; k++ ){
+                        if(chessState[i][j+k] == chessStateOption[CHESS_PLAYER2] || k==0) status.append("1");
+                        else if(chessState[i][j+k] == chessStateOption[CHESS_PLAYER1]) status.append("2");
+                        else status.append("0"); //empty&&k!=0
+                    }
+                    score_attack += scoreCaculation(status);
+                }
+
+                //左到右(防禦最大可能性檢查)
+                isGoodSpot = false;
+                count_poten = 0;
+                for(int k = -chessNumLeft; k <= chessNumRight; k++ ){
+                    if (chessState[i][j+k] == chessStateOption[EMPTY] || chessState[i][j+k] == chessStateOption[CHESS_PLAYER1]){
+                        count_poten++;
+                    }
+                    else count_poten=0;
+                    if(count_poten >= 5){
+                        isGoodSpot = true;
+                        break;
+                    }
+                }
+
+                //左到右(防禦檢查)
+                if(isGoodSpot){
+                    string status;
+                    for(int k = -chessNumLeft; k <= chessNumRight; k++ ){
+                        if(chessState[i][j+k] == chessStateOption[CHESS_PLAYER1] || k==0) status.append("1");
+                        else if(chessState[i][j+k] == chessStateOption[CHESS_PLAYER2]) status.append("2");
+                        else status.append("0"); //empty&&k!=0
+                    }
+                    score_defense += scoreCaculation(status);
+                }
+
+                //左下到右上(攻擊最大可能姓檢查)
+                lowerBound = smallComparison(chessNumLeft, chessNumBottom);
+                upperBound = smallComparison(chessNumRight, chessNumTop);
+                isGoodSpot = false;
+                count_poten = 0;
+                for(int k = -lowerBound; k <= upperBound; k++ ){
+                    if (chessState[i-k][j+k] == chessStateOption[EMPTY] || chessState[i-k][j+k] == chessStateOption[CHESS_PLAYER2]){
+                        count_poten++;
+                    }
+                    else count_poten=0;
+                    if(count_poten >= 5){
+                        isGoodSpot = true;
+                        break;
+                    }
+                }
+
+                //左下到右上(攻擊檢查)
+                if(isGoodSpot){
+                    string status;
+                    for(int k = -lowerBound; k <= upperBound; k++ ){
+                        if(chessState[i-k][j+k] == chessStateOption[CHESS_PLAYER2] || k==0) status.append("1");
+                        else if(chessState[i-k][j+k] == chessStateOption[CHESS_PLAYER1]) status.append("2");
+                        else status.append("0"); //empty&&k!=0
+                    }
+                    score_attack += scoreCaculation(status);
+                }
+
+                //左下到右上(防禦最大可能姓檢查)
+                isGoodSpot = false;
+                count_poten = 0;
+                for(int k = -lowerBound; k <= upperBound; k++ ){
+                    if (chessState[i-k][j+k] == chessStateOption[EMPTY] || chessState[i-k][j+k] == chessStateOption[CHESS_PLAYER1]){
+                        count_poten++;
+                    }
+                    else count_poten=0;
+                    if(count_poten >= 5){
+                        isGoodSpot = true;
+                        break;
+                    }
+                }
+
+                //左下到右上(防禦檢查)
+                if(isGoodSpot){
+                    string status;
+                    for(int k = -lowerBound; k <= upperBound; k++ ){
+                        if(chessState[i-k][j+k] == chessStateOption[CHESS_PLAYER1] || k==0) status.append("1");
+                        else if(chessState[i-k][j+k] == chessStateOption[CHESS_PLAYER2]) status.append("2");
+                        else status.append("0"); //empty&&k!=0
+                    }
+                    score_defense += scoreCaculation(status);
+                }
+
+
+                //左上到右下(攻擊最大可能姓檢查)
+                lowerBound = smallComparison(chessNumLeft, chessNumTop);
+                upperBound = smallComparison(chessNumRight, chessNumBottom);
+                isGoodSpot = false;
+                count_poten = 0;
+                for(int k = -lowerBound; k <= upperBound; k++ ){
+                    if (chessState[i+k][j+k] == chessStateOption[EMPTY] || chessState[i+k][j+k] == chessStateOption[CHESS_PLAYER2]){
+                        count_poten++;
+                    }
+                    else count_poten=0;
+                    if(count_poten >= 5){
+                        isGoodSpot = true;
+                        break;
+                    }
+                }
+
+
+                //左上到右下(攻擊檢查)
+                if(isGoodSpot){
+                    string status;
+                    for(int k = -lowerBound; k <= upperBound; k++ ){
+                        if(chessState[i+k][j+k] == chessStateOption[CHESS_PLAYER2] || k==0) status.append("1");
+                        else if(chessState[i+k][j+k] == chessStateOption[CHESS_PLAYER1]) status.append("2");
+                        else status.append("0"); //empty&&k!=0
+                    }
+                    score_attack += scoreCaculation(status);
+                }
+                //左上到右下(防禦最大可能姓檢查)
+                isGoodSpot = false;
+                count_poten = 0;
+                for(int k = -lowerBound; k <= upperBound; k++ ){
+                    if (chessState[i+k][j+k] == chessStateOption[EMPTY] || chessState[i+k][j+k] == chessStateOption[CHESS_PLAYER1]){
+                        count_poten++;
+                    }
+                    else count_poten=0;
+                    if(count_poten >= 5){
+                        isGoodSpot = true;
+                        break;
+                    }
+                }
+                //左上到右下(防禦檢查)
+                if(isGoodSpot){
+                    string status;
+                    for(int k = -lowerBound; k <= upperBound; k++ ){
+                        if(chessState[i+k][j+k] == chessStateOption[CHESS_PLAYER1] || k==0) status.append("1");
+                        else if(chessState[i+k][j+k] == chessStateOption[CHESS_PLAYER2]) status.append("2");
+                        else status.append("0"); //empty&&k!=0
+                    }
+                    score_defense += scoreCaculation(status);
+                }
+            }
+        if(score_attack > maximumScore_attack){
+            maximumScore_attack = score_attack;
+            supposedRowtoSetChess_attack = i;
+            supposedColumntoSetChess_attack = j;
+        }
+        if(score_defense > maximumScore_defense){
+            maximumScore_defense = score_defense;
+            supposedRowtoSetChess_defense = i;
+            supposedColumntoSetChess_defense = j;
+        }
         }
     }
     qDebug()<<"~    Attack Score:["<<supposedRowtoSetChess_attack<<"]"<<"["<<supposedColumntoSetChess_attack<<"]"<<"/maximumScore: "<< maximumScore_attack;
